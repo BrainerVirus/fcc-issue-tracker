@@ -91,6 +91,14 @@ const deleteIssue = async (req, res) => {
       isDeleted: true,
       deleted_on: Date.now().toString(),
     };
+    const issueToDelete = await issueModel
+      .find(req.body._id)
+      .where("isDeleted")
+      .equals(false);
+    if (!issueToDelete)
+      return res
+        .status(200)
+        .json({ error: "could not delete", _id: req.body._id });
     await issueModel
       .findByIdAndUpdate(req.body._id, info)
       .where("isDeleted")
