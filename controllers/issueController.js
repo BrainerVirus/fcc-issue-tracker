@@ -44,7 +44,6 @@ const getIssues = async (req, res) => {
 const updateIssue = async (req, res, next) => {
   try {
     const info = {
-      _id: req.body._id,
       issue_title: req.body.issue_title,
       issue_text: req.body.issue_text,
       created_by: req.body.created_by,
@@ -53,7 +52,15 @@ const updateIssue = async (req, res, next) => {
       open: req.body.open,
       updated_on: Date.now().toString(),
     };
-    if (!info._id) return res.status(200).json({ error: "missing _id" });
+    if (!req.body._id) return res.status(200).json({ error: "missing _id" });
+    const issue = await issueModel
+      .findById(req.body._id)
+      .where("isDeleted")
+      .equals(false);
+    if (!issue)
+      return res
+        .status(200)
+        .json({ error: "could not update", _id: req.body._id });
     if (
       !req.body.issue_title &&
       !req.body.issue_text &&
