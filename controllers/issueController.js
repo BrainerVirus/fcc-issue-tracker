@@ -52,12 +52,11 @@ const updateIssue = async (req, res, next) => {
       open: req.body.open,
       updated_on: Date.now().toString(),
     };
-    if (!req.body._id) return res.status(200).json({ error: "missing _id" });
     const issue = await issueModel
-      .findById(req.body._id)
-      .where("deleted_on")
-      .equals(null);
-    if (!issue) return res.status(200).json({ error: "could not update" });
+      .findById(info._id)
+      .where("isDeleted")
+      .equals(false);
+    if (!req.body._id) return res.status(200).json({ error: "missing _id" });
     if (
       !req.body.issue_title &&
       !req.body.issue_text &&
@@ -75,7 +74,7 @@ const updateIssue = async (req, res, next) => {
     if (!req.body.assigned_to) info.assigned_to = issue.assigned_to;
     if (!req.body.status_text) info.status_text = issue.status_text;
 
-    await issueModel
+    const updatedIssue = await issueModel
       .findByIdAndUpdate(req.body._id, info)
       .where("deleted_on")
       .equals(null);
