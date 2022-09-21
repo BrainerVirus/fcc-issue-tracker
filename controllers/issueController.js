@@ -44,6 +44,7 @@ const getIssues = async (req, res) => {
 const updateIssue = async (req, res, next) => {
   try {
     const info = {
+      _id: req.body._id,
       issue_title: req.body.issue_title,
       issue_text: req.body.issue_text,
       created_by: req.body.created_by,
@@ -52,11 +53,7 @@ const updateIssue = async (req, res, next) => {
       open: req.body.open,
       updated_on: Date.now().toString(),
     };
-    const issue = await issueModel
-      .findById(req.body._id)
-      .where("isDeleted")
-      .equals(false);
-    if (!req.body._id) return res.status(200).json({ error: "missing _id" });
+    if (!info._id) return res.status(200).json({ error: "missing _id" });
     if (
       !req.body.issue_title &&
       !req.body.issue_text &&
@@ -76,8 +73,8 @@ const updateIssue = async (req, res, next) => {
 
     const updatedIssue = await issueModel
       .findByIdAndUpdate(req.body._id, info)
-      .where("isDeleted")
-      .equals(false);
+      .where("deleted_on")
+      .equals(null);
     res.status(200).json({ result: "successfully updated", _id: req.body._id });
   } catch (error) {
     res.status(200).json({ error: "could not update", _id: req.body._id });
@@ -88,21 +85,22 @@ const deleteIssue = async (req, res) => {
   try {
     if (!req.body._id) return res.status(200).json({ error: "missing _id" });
     const info = {
+      _id: req.body._id,
       isDeleted: true,
       deleted_on: Date.now().toString(),
     };
     const issueToDelete = await issueModel
-      .find(req.body._id)
-      .where("isDeleted")
-      .equals(false);
+      .findById(info._id)
+      .where("deleted_on")
+      .equals(null);
     if (!issueToDelete)
       return res
         .status(200)
         .json({ error: "could not delete", _id: req.body._id });
     await issueModel
       .findByIdAndUpdate(req.body._id, info)
-      .where("isDeleted")
-      .equals(false);
+      .where("deleted_on")
+      .equals(null);
     res.status(200).json({ result: "successfully deleted", _id: req.body._id });
   } catch (error) {
     res.status(200).json({ error: "could not delete", _id: req.body._id });
